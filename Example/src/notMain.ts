@@ -6,9 +6,6 @@ function doTheThing() {
     console.log("Doing the thing")
 }
 
-function run() {
-    console.log("running")
-}
 
 function privateLogic() {
     return "this function is not exposed"
