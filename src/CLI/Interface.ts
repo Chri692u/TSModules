@@ -1,9 +1,7 @@
-// @ts-ignore
 import { input, select } from '@inquirer/prompts'
 import { initialize_blank, reinitialize } from '../Builder'
 import * as fss from "fs"
 import * as path from "path"
-import { log } from 'console'
 
 run()
 
@@ -12,10 +10,12 @@ interface PathMap {
 }
 
 async function run() {
+  let exit = true
+  while (exit) {
     let map: PathMap = {}
     const projects = path.join(__dirname, "project_list.json")
     const choice = await select({
-        message: 'Select a package manager',
+        message: 'TSModules CLI:',
         choices: [
           {
             name: 'Initialize new project',
@@ -32,6 +32,10 @@ async function run() {
           {
             name: 'Run binary',
             value: 'run',
+          },
+          {
+            name: 'Exit CLI',
+            value: 'exit',
           }
         ],
       });
@@ -48,22 +52,30 @@ async function run() {
             // Update the projects map with the new project
             map[name] = file_path
             fss.writeFileSync(projects, JSON.stringify(map, null, 2))
-            
-            break;
+            break
 
         case "reinit":
-            run_reinit()
-            break;
+            let updated = await run_reinit()
+            console.log(`Updated ${updated}`)
+            break
+
         case "build":
             run_build()
-            break;
+            break
+
         case "run":
             run_bin()
-            break;
+            break
+
+        case "exit":
+          exit = false
+          break
+
         default:
             throw new Error("REACHED DEFAULT OH NO DISASTER");
             
     }
+  }
 }
 
 async function run_init(){
@@ -75,8 +87,8 @@ async function run_init(){
 async function run_reinit(){
     const answer = await input({ message: 'What project?' })
     //TODO selectings
-    let fp = reinitialize(answer)
-    return { name: answer, file_path: fp }
+    reinitialize(answer)
+    return answer
 }
 
 async function run_build(){

@@ -95,8 +95,6 @@ export function reinitialize(name:string) {
             fss.writeFileSync(main_file_path, "// Your main code here");
         }
     })
-
-    return file_path
 }
 
 // function to cleanup thank you
