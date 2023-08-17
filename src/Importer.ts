@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import * as file from "../Example/tsmodules.json";
+// import * as file from "../Example/tsmodules.json";
 
 
 
@@ -21,32 +21,46 @@ function exposePackage(name: string, imports: string[]) {
 }
 
 
-function imports(path: string) {
-    const program: ts.Program = ts.createProgram([path], {})
-    const typeChecker: ts.TypeChecker = program.getTypeChecker()
-    const sourceFiles = program.getSourceFiles()
+function imports(filePaths: string[]): void {
+    const program: ts.Program = ts.createProgram(filePaths, {});
+    const typeChecker: ts.TypeChecker = program.getTypeChecker();
+    const sourceFiles = program.getSourceFiles();
 
     const functions: string[] = [];
+    const includes: string[] = [];
+    let mainFile: string = "";
 
     for (const sourceFile of sourceFiles) {
         if (!sourceFile.isDeclarationFile) {
             console.log('Visiting source file:', sourceFile.fileName);
-            visitNode(sourceFile, functions, typeChecker, program);
+            visitNode(sourceFile, functions, includes, mainFile, typeChecker, program);
         }
     }
 
     const classContent = functions.join('\n');
+    const includesContent = includes.join('\n');
 
     const namespaceTemplate = `
       export namespace negermand {
         ${classContent}
       }
+  
+      ${includesContent}
+  
+      export const main_is = '${mainFile}';
     `;
 
     fs.writeFileSync("outputFileName.ts", namespaceTemplate);
 }
 
-function visitNode(node: ts.Node, functions: string[], checker: ts.TypeChecker, program: ts.Program): void {
+function visitNode(
+    node: ts.Node,
+    functions: string[],
+    includes: string[],
+    mainFile: string,
+    checker: ts.TypeChecker,
+    program: ts.Program
+): void {
     if (ts.isFunctionDeclaration(node) && !(ts.getCombinedModifierFlags(node) & ts.ModifierFlags.Private)) {
         //@ts-ignore
         const symbol = checker.getSymbolAtLocation(node.name);
@@ -58,8 +72,17 @@ function visitNode(node: ts.Node, functions: string[], checker: ts.TypeChecker, 
         }
     }
 
+    if (ts.isImportDeclaration(node)) {
+        const importPath = node.moduleSpecifier.getText().replace(/['"]/g, '');
+        includes.push(`import '${importPath}';`);
+    }
+
+    if (ts.isSourceFile(node) && node.fileName.endsWith('main.ts')) {
+        mainFile = node.fileName;
+    }
+
     ts.forEachChild(node, childNode => {
-        visitNode(childNode, functions, checker, program);
+        visitNode(childNode, functions, includes, mainFile, checker, program);
     });
 }
 
@@ -70,7 +93,6 @@ function generateFunction(functionName: string, functionBody: ts.Block, paramete
     return `function ${functionName}(${parameterList}): ${returnType} ${formattedFunctionBody} `;
 }
 
-imports("Example/src/notMain.ts")
 
 
 function getFiles(dir: string): string[] {
@@ -94,3 +116,5 @@ function getFiles(dir: string): string[] {
     readDirRecursively(dir);
     return files;
 }
+const files = getFiles("Example/src");
+imports(files);

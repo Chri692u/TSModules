@@ -2,7 +2,7 @@ import * as fs from "fs/promises";
 import * as fss from "fs"
 import path from "path"
 import { execSync } from "child_process";
-import * as file from "../Example/tsmodules.json";
+// import * as file from "../Example/tsmodules.json";
 import * as config from "../tsconfig.json";
 import { Config, initial_cfg } from "./Config";
 
@@ -27,7 +27,7 @@ async function compile(json_config: any) {
 
     try {
         // Write tsconfig.json asynchronously
-        // await fs.writeFile("tsconfig.json", JSON.stringify(tsConfig, null, 2));
+        await fs.writeFile("tsconfig.json", JSON.stringify(tsConfig, null, 2));
 
         // Compile the TypeScript files asynchronously
         await new Promise<void>((resolve, reject) => {
