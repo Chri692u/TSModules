@@ -1,8 +1,19 @@
 {
   "devDependencies": {
+    "@types/inquirer": "^9.0.3",
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@inquirer/prompts": "^3.0.2",
     "@types/node": "^20.5.0"
-  }
+  },
+  "name": "tsmodules",
+  "description": "1. Design types\r 2. Builder\r 3. Importer\r 4. Redesign\r 5. Finish/Expand",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
 }
