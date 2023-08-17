@@ -17,7 +17,7 @@
       ]
     },
     "executable": {
-      "name": "main script",
+      "name": "main",
       "main-is": "main.ts",
       "build-depends": [
         "base"
