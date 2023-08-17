@@ -1,0 +1,29 @@
+{
+    "version": "1.0",
+    "name": "My cool project",
+    "project-version": "0.1.0.0",
+    "author": "Christoffer Lind Andersen",
+    "maintainer": null,
+    "extra-source-files": [
+      "README.md"
+    ],
+    "library": {
+      "source-dirs": "src",
+      "exposed-modules": [
+        "notMain"
+      ],
+      "build-depends": [
+        "base"
+      ]
+    },
+    "executable": {
+      "name": "main script",
+      "main-is": "main.ts",
+      "build-depends": [
+        "base"
+      ],
+      "source-dirs": "app",
+      "default-language": "ES6s"
+    }
+  }
+  
