@@ -1,7 +1,10 @@
 import * as fs from "fs/promises";
+import * as fss from "fs"
+import path from "path"
 import { execSync } from "child_process";
 import * as file from "../Example/tsmodules.json";
 import * as config from "../tsconfig.json";
+import { Config, initial_cfg } from "./Config";
 
 
 // function to run the binary file from compilation
@@ -43,44 +46,13 @@ async function compile(json_config: any) {
 
 // function that creates a project
 function initialize_blank() {
-    // Default main executable
-    const initial_exec:Executable = {
-        name: "main",
-        main_is: "main.ts",
-        depends: [
-            "base"
-        ],
-        source_dirs: "app",
-        target_lang: "ES6"
-    }
-
-    // Default config
-    const initial_cfg:Config = {
-        version: "1.0",
-        name: "",
-        project_version: "0.0.1",
-        author: "",
-        maintainer: "",
-        extra_files: [
-            "README.md"
-        ],
-        libs: {
-            source_dirs: "src",
-            exposed_modules: ["notMain.ts"],
-            depends: [
-                "base"
-            ]
-        },
-        exec: [initial_exec]
-    }
-
     // Create json file
     const dirname = path.join(__dirname, "Example")
-    fs.mkdirSync(dirname, { recursive: true })
+    fss.mkdirSync(dirname, { recursive: true })
 
     const json = JSON.stringify(initial_cfg, null, 4)
     const filePath = path.join(dirname, "tsmodules.json")
-    fs.writeFileSync(filePath, json);
+    fss.writeFileSync(filePath, json);
 
     // Create project files
     reinitialize()
@@ -89,7 +61,7 @@ function initialize_blank() {
 function reinitialize() {
     const dirname = path.join(__dirname, "Example")
     const file_path = path.join(dirname, "tsmodules.json")
-    const cfg_contents = fs.readFileSync(file_path, "utf-8")
+    const cfg_contents = fss.readFileSync(file_path, "utf-8")
     const config: Config = JSON.parse(cfg_contents)
 
     // Reinitialize libraries
@@ -97,13 +69,13 @@ function reinitialize() {
     const exposed_modules = library.exposed_modules
     const source_dirs = library.source_dirs
     const lib_dir = path.join(dirname, source_dirs)
-    fs.mkdirSync(lib_dir, { recursive: true })
+    fss.mkdirSync(lib_dir, { recursive: true })
 
     exposed_modules.forEach((module_name) => {
         const module_path = path.join(lib_dir, module_name);
 
-        if (!fs.existsSync(module_path)) {
-            fs.writeFileSync(module_path, "// Your code here");
+        if (!fss.existsSync(module_path)) {
+            fss.writeFileSync(module_path, "// Your code here");
         }
     })
 
@@ -113,9 +85,9 @@ function reinitialize() {
         const exec_dir = path.join(dirname, source_dirs)
         const main_file_path = path.join(exec_dir, executable.main_is);
 
-        fs.mkdirSync(exec_dir, { recursive: true })
-        if (!fs.existsSync(main_file_path)) {
-            fs.writeFileSync(main_file_path, "// Your main code here");
+        fss.mkdirSync(exec_dir, { recursive: true })
+        if (!fss.existsSync(main_file_path)) {
+            fss.writeFileSync(main_file_path, "// Your main code here");
         }
     })
 }
