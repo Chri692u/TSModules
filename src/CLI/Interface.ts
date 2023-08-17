@@ -1,12 +1,19 @@
 // @ts-ignore
-import { input, select } from '@inquirer/prompts';
-import { initialize_blank, get_config} from '../Builder'
-import { Config } from "../Config";
+import { input, select } from '@inquirer/prompts'
+import { initialize_blank, reinitialize } from '../Builder'
+import * as fss from "fs"
+import * as path from "path"
+import { log } from 'console'
 
 run()
 
+interface PathMap {
+  [key: string]: string;
+}
+
 async function run() {
-    let map = new Map();
+    let map: PathMap = {}
+    const projects = path.join(__dirname, "project_list.json")
     const choice = await select({
         message: 'Select a package manager',
         choices: [
@@ -31,11 +38,19 @@ async function run() {
 
     switch (choice) {
         case "init":
-            let cfg = await run_init()
-            map.set("test", cfg)
-            console.log(map)
+            let { name, file_path } = await run_init()
+    
+            if (fss.existsSync(projects)) {
+                const projectsContents = fss.readFileSync(projects, "utf-8")
+                map = JSON.parse(projectsContents)
+            }
             
-            break
+            // Update the projects map with the new project
+            map[name] = file_path
+            fss.writeFileSync(projects, JSON.stringify(map, null, 2))
+            
+            break;
+
         case "reinit":
             run_reinit()
             break;
@@ -52,29 +67,27 @@ async function run() {
 }
 
 async function run_init(){
-    const answer = await input({ message: 'Name of new project:' });
-    initialize_blank(answer)
-    let state = get_config(answer)
-    return state
+    const answer = await input({ message: 'Name of new project:' })
+    let fp = initialize_blank(answer)
+    return { name: answer, file_path: fp }
 }
 
 async function run_reinit(){
-    console.log("reinit");
-    //askProject
-    //reinitialize(state)
+    const answer = await input({ message: 'What project?' })
+    //TODO selectings
+    let fp = reinitialize(answer)
+    return { name: answer, file_path: fp }
 }
 
 async function run_build(){
     console.log("build");
-    //askProject
+    //ask
     //compile
 }
 
 async function run_bin(){
-    //askProject
+    //ask
     console.log("bin");
 }
 
-async function ask(){
-  return
-}
+//TODO: function to print project list

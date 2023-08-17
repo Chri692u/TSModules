@@ -53,20 +53,12 @@ export function initialize_blank(name:any) {
     fss.mkdirSync(dirname, { recursive: true })
 
     const json = JSON.stringify(initial_cfg, null, 4)
-    const filePath = path.join(dirname, "tsmodules.json")
-    fss.writeFileSync(filePath, json);
+    const file_path = path.join(dirname, "tsmodules.json")
+    fss.writeFileSync(file_path, json);
 
     // Create project files
     reinitialize(name)
-}
-
-// get current config of a project
-export function get_config(name:string) {
-    const dirname = path.join(__dirname, name)
-    const file_path = path.join(dirname, "tsmodules.json")
-    const cfg_contents = fss.readFileSync(file_path, "utf-8")
-    const config: Config = JSON.parse(cfg_contents)
-    return config
+    return file_path
 }
 
 export function reinitialize(name:string) {
@@ -80,6 +72,8 @@ export function reinitialize(name:string) {
     const exposed_modules = library.exposed_modules
     const source_dirs = library.source_dirs
     const lib_dir = path.join(dirname, source_dirs)
+    console.log(exposed_modules);
+    
     fss.mkdirSync(lib_dir, { recursive: true })
 
     exposed_modules.forEach((module_name) => {
@@ -101,6 +95,8 @@ export function reinitialize(name:string) {
             fss.writeFileSync(main_file_path, "// Your main code here");
         }
     })
+
+    return file_path
 }
 
 // function to cleanup thank you
