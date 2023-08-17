@@ -1,9 +1,9 @@
 import * as fs from "fs/promises";
 import * as fss from "fs"
-import path from "path"
+import * as path from "path"
 import { execSync } from "child_process";
 // import * as file from "../Example/tsmodules.json";
-import * as config from "../tsconfig.json";
+//import * as config from "../tsconfig.json";
 import { Config, initial_cfg } from "./Config";
 
 
@@ -19,6 +19,7 @@ function run(executable_name: string) {
  * @param json_config - The JSON configuration object.
  * @returns A promise that resolves when the compilation is completed successfully, or rejects with an error if any file operation fails or if the compilation itself fails.
  */
+/*
 async function compile(json_config: any) {
     const { executable, library } = json_config;
 
@@ -43,11 +44,12 @@ async function compile(json_config: any) {
         console.error("File operation failed:", error);
     }
 }
+*/
 
 // function that creates a project
-function initialize_blank() {
+export function initialize_blank(name:any) {
     // Create json file
-    const dirname = path.join(__dirname, "Example")
+    const dirname = path.join(__dirname, name)
     fss.mkdirSync(dirname, { recursive: true })
 
     const json = JSON.stringify(initial_cfg, null, 4)
@@ -55,11 +57,20 @@ function initialize_blank() {
     fss.writeFileSync(filePath, json);
 
     // Create project files
-    reinitialize()
+    reinitialize(name)
 }
 
-function reinitialize() {
-    const dirname = path.join(__dirname, "Example")
+// get current config of a project
+export function get_config(name:string) {
+    const dirname = path.join(__dirname, name)
+    const file_path = path.join(dirname, "tsmodules.json")
+    const cfg_contents = fss.readFileSync(file_path, "utf-8")
+    const config: Config = JSON.parse(cfg_contents)
+    return config
+}
+
+export function reinitialize(name:string) {
+    const dirname = path.join(__dirname, name)
     const file_path = path.join(dirname, "tsmodules.json")
     const cfg_contents = fss.readFileSync(file_path, "utf-8")
     const config: Config = JSON.parse(cfg_contents)

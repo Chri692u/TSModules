@@ -1,9 +1,12 @@
 // @ts-ignore
 import { input, select } from '@inquirer/prompts';
+import { initialize_blank, get_config} from '../Builder'
+import { Config } from "../Config";
 
 run()
 
 async function run() {
+    let map = new Map();
     const choice = await select({
         message: 'Select a package manager',
         choices: [
@@ -28,7 +31,10 @@ async function run() {
 
     switch (choice) {
         case "init":
-            run_init()
+            let cfg = await run_init()
+            map.set("test", cfg)
+            console.log(map)
+            
             break
         case "reinit":
             run_reinit()
@@ -47,8 +53,9 @@ async function run() {
 
 async function run_init(){
     const answer = await input({ message: 'Name of new project:' });
-    //initialize blank
-    //update CLI state
+    initialize_blank(answer)
+    let state = get_config(answer)
+    return state
 }
 
 async function run_reinit(){
@@ -68,6 +75,6 @@ async function run_bin(){
     console.log("bin");
 }
 
-async function askProject(){
-    console.log("what projects do you want to run?");
+async function ask(){
+  return
 }
