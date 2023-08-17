@@ -1,5 +1,5 @@
 // @ts-ignore
-import { select } from '@inquirer/prompts';
+import { input, select } from '@inquirer/prompts';
 
 run()
 
@@ -46,17 +46,28 @@ async function run() {
 }
 
 async function run_init(){
-    console.log("init");
+    const answer = await input({ message: 'Name of new project:' });
+    //initialize blank
+    //update CLI state
 }
 
 async function run_reinit(){
     console.log("reinit");
+    //askProject
+    //reinitialize(state)
 }
 
 async function run_build(){
     console.log("build");
+    //askProject
+    //compile
 }
 
 async function run_bin(){
+    //askProject
     console.log("bin");
+}
+
+async function askProject(){
+    console.log("what projects do you want to run?");
 }
