@@ -23,7 +23,7 @@
         "base"
       ],
       "source-dirs": "app",
-      "default-language": "ES6s"
+      "default-language": "ES6"
     }
   }
   
