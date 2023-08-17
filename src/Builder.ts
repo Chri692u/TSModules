@@ -1,19 +1,44 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "fs/promises";
+import { execSync } from "child_process";
+import * as file from "../Example/tsmodules.json";
+import * as config from "../tsconfig.json";
 
 
 // function to run the binary file from compilation
-function run_binary(executable_name:string) {
+function run(executable_name: string) {
     // compile(project_name)
     // run the binary in dist-folder
 }
 
-// function to compile the main file
-function compile(json_config:Object) {
-    // make a temporary file
-    // insert main + imported functions
-    // compile with dist-folder target
-    // write files
+
+/**
+ * Compiles the TypeScript files based on the provided JSON configuration.
+ * @param json_config - The JSON configuration object.
+ * @returns A promise that resolves when the compilation is completed successfully, or rejects with an error if any file operation fails or if the compilation itself fails.
+ */
+async function compile(json_config: any) {
+    const { executable, library } = json_config;
+
+    // Generate tsconfig.json
+    let tsConfig = { ...config, include: [executable['main-is'], ...library['exposed-modules'].map((module: any) => `${library['source-dirs']}/${module}.ts`)], exclude: ["node_modules"] };
+
+    try {
+        // Write tsconfig.json asynchronously
+        // await fs.writeFile("tsconfig.json", JSON.stringify(tsConfig, null, 2));
+
+        // Compile the TypeScript files asynchronously
+        await new Promise<void>((resolve, reject) => {
+            try {
+                execSync("tsc");
+                console.log("Compilation completed successfully.");
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    } catch (error) {
+        console.error("File operation failed:", error);
+    }
 }
 
 // function that creates a project
