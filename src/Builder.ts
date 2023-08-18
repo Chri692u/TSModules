@@ -19,7 +19,6 @@ function run(executable_name: string) {
  * @param json_config - The JSON configuration object.
  * @returns A promise that resolves when the compilation is completed successfully, or rejects with an error if any file operation fails or if the compilation itself fails.
  */
-
 export async function compile(name:string) {
     const dirname = path.join(__dirname, name)
     const file_path = path.join(dirname, "tsmodules.json")
