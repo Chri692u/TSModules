@@ -14,17 +14,20 @@ function run(executable_name: string) {
 }
 
 
-/**
+/*
  * Compiles the TypeScript files based on the provided JSON configuration.
  * @param json_config - The JSON configuration object.
  * @returns A promise that resolves when the compilation is completed successfully, or rejects with an error if any file operation fails or if the compilation itself fails.
  */
-/*
-async function compile(json_config: any) {
-    const { executable, library } = json_config;
 
+export async function compile(name:string) {
+    const dirname = path.join(__dirname, name)
+    const file_path = path.join(dirname, "tsmodules.json")
+    const cfg_contents = fss.readFileSync(file_path, "utf-8")
+    const config: Config = JSON.parse(cfg_contents)
+    const { exec, libs } = config;
     // Generate tsconfig.json
-    let tsConfig = { ...config, include: [executable['main-is'], ...library['exposed-modules'].map((module: any) => `${library['source-dirs']}/${module}.ts`)], exclude: ["node_modules"] };
+    let tsConfig = { ...config, include: [exec['main_is'], ...libs['exposed_modules'].map((module: any) => `${libs['source_dirs']}/${module}.ts`)], exclude: ["node_modules"] };
 
     try {
         // Write tsconfig.json asynchronously
@@ -44,7 +47,6 @@ async function compile(json_config: any) {
         console.error("File operation failed:", error);
     }
 }
-*/
 
 // function that creates a project
 export function initialize_blank(name:any) {
@@ -85,16 +87,14 @@ export function reinitialize(name:string) {
     })
 
     // Reinitialize executables
-    config.exec.forEach((executable) => {
-        const source_dirs = executable.source_dirs;
-        const exec_dir = path.join(dirname, source_dirs)
-        const main_file_path = path.join(exec_dir, executable.main_is);
+    const executable = config.exec
+    const exec_dir = path.join(dirname, executable.source_dirs)
+    const main_file_path = path.join(exec_dir, executable.main_is);
 
-        fss.mkdirSync(exec_dir, { recursive: true })
-        if (!fss.existsSync(main_file_path)) {
-            fss.writeFileSync(main_file_path, "// Your main code here");
-        }
-    })
+    fss.mkdirSync(exec_dir, { recursive: true })
+    if (!fss.existsSync(main_file_path)) {
+        fss.writeFileSync(main_file_path, "// Your main code here");
+    }
 }
 
 // function to cleanup thank you

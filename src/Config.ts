@@ -6,7 +6,7 @@ export interface Config {
     maintainer: string
     extra_files: string[]
     libs: Library
-    exec: Executable[]
+    exec: Executable
 }
 
 interface Library {
@@ -51,5 +51,5 @@ export const initial_cfg:Config = {
             "base"
         ]
     },
-    exec: [initial_exec]
+    exec: initial_exec
 }

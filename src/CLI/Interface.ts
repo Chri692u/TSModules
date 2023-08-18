@@ -1,5 +1,5 @@
 import { input, select } from '@inquirer/prompts'
-import { initialize_blank, reinitialize } from '../Builder'
+import { initialize_blank, reinitialize, compile } from '../Builder'
 import * as fss from "fs"
 import * as path from "path"
 
@@ -60,7 +60,7 @@ async function run() {
             break
 
         case "build":
-            run_build()
+            await run_build()
             break
 
         case "run":
@@ -92,9 +92,8 @@ async function run_reinit(){
 }
 
 async function run_build(){
-    console.log("build");
-    //ask
-    //compile
+    const answer = await input({ message: 'What project?' })
+    await compile(answer)
 }
 
 async function run_bin(){
