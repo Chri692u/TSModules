@@ -44,9 +44,7 @@ function imports(filePaths: string[]): void {
       export namespace negermand {
         ${classContent}
       }
-  
       ${includesContent}
-  
       export const main_is = '${mainFile}';
     `;
 

@@ -9,6 +9,18 @@ export interface Config {
     exec: Executable
 }
 
+
+interface TSconfig {
+    compilerOptions: {
+        module: string;
+        noImplicitAny: boolean;
+        removeComments: boolean;
+        preserveConstEnums: boolean;
+        sourceMap: boolean;
+    };
+    files: never[];
+}
+
 interface Library {
     source_dirs: string
     exposed_modules: string[]
@@ -24,7 +36,7 @@ interface Executable {
 }
 
 // Default main executable
-const initial_exec:Executable = {
+const initial_exec: Executable = {
     name: "main",
     main_is: "main.ts",
     depends: [
@@ -35,7 +47,7 @@ const initial_exec:Executable = {
 }
 
 // Default config
-export const initial_cfg:Config = {
+export const initial_cfg: Config = {
     version: "1.0",
     name: "",
     project_version: "0.0.1",
@@ -52,4 +64,17 @@ export const initial_cfg:Config = {
         ]
     },
     exec: initial_exec
+}
+
+
+
+export const tsconfig: TSconfig = {
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "removeComments": true,
+        "preserveConstEnums": true,
+        "sourceMap": true
+    },
+    "files": []
 }
