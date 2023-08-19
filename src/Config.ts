@@ -10,7 +10,7 @@ export interface Config {
 }
 
 
-interface TSconfig {
+export interface TSconfig {
     compilerOptions: {
         module: string;
         noImplicitAny: boolean;
@@ -18,16 +18,16 @@ interface TSconfig {
         preserveConstEnums: boolean;
         sourceMap: boolean;
     };
-    files: never[];
+    files: string[];
 }
 
-interface Library {
+export interface Library {
     source_dirs: string
     exposed_modules: string[]
     depends: string[]
 }
 
-interface Executable {
+export interface Executable {
     name: string
     main_is: string
     depends: string[]

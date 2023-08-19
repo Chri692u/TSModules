@@ -4,7 +4,10 @@ import * as path from "path"
 import { execSync } from "child_process";
 // import * as file from "../Example/tsmodules.json";
 //import * as config from "../tsconfig.json";
-import { Config, initial_cfg, tsconfig } from "./Config";
+import { Config, tsconfig } from "./Config";
+
+
+import type { Executable, Library, TSconfig } from "./Config";
 
 
 // function to run the binary file from compilation
@@ -25,7 +28,7 @@ export async function compile(name: string): Promise<void> {
 
     const cfg_contents = fss.readFileSync(file_path, "utf-8")
     const config: Config = JSON.parse(cfg_contents)
-    const { exec, libs } = config;
+    const { exec, libs }: { exec: Executable, libs: Library } = config;
 
     //! Read files in libs and compile parse them into modules (module.ts)
     // Parse all files (exec and libs - Our syntax extention)
@@ -33,7 +36,7 @@ export async function compile(name: string): Promise<void> {
     //* Insert all imports acordenly
 
     // Generate tsconfig.json
-    let tsConfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
+    let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
 
     try {
         // Write tsconfig.json asynchronously
@@ -60,18 +63,18 @@ export async function compile(name: string): Promise<void> {
 
 
 // function that creates a project
-export function initialize_blank(name: any) {
+export function initialize_blank(name: string, config: Config) {
     // Create json file
-    const dirname: string = path.join(__dirname, name)
-    fss.mkdirSync(dirname, { recursive: true })
+    const dirname: string = path.join(__dirname, name);
+    fss.mkdirSync(dirname, { recursive: true });
 
-    const json: string = JSON.stringify(initial_cfg, null, 4)
-    const file_path: string = path.join(dirname, "tsmodules.json")
+    const json: string = JSON.stringify(config, null, 4);
+    const file_path: string = path.join(dirname, 'tsmodules.json');
     fss.writeFileSync(file_path, json);
 
     // Create project files
-    reinitialize(name)
-    return file_path
+    reinitialize(name);
+    return file_path;
 }
 
 export function reinitialize(name: string) {
@@ -81,16 +84,18 @@ export function reinitialize(name: string) {
     const config: Config = JSON.parse(cfg_contents)
 
     // Reinitialize libraries
-    const library = config.libs
-    const exposed_modules = library.exposed_modules
-    const source_dirs = library.source_dirs
-    const lib_dir = path.join(dirname, source_dirs)
+    const library: Library = config.libs
+    const exposed_modules: string[] = library.exposed_modules
+    const source_dirs: string = library.source_dirs
+    const lib_dir: string = path.join(dirname, source_dirs)
+
+    //! a little thingers right here
     console.log(exposed_modules);
 
     fss.mkdirSync(lib_dir, { recursive: true })
 
     exposed_modules.forEach((module_name) => {
-        const module_path = path.join(lib_dir, module_name);
+        const module_path: string = path.join(lib_dir, module_name);
 
         if (!fss.existsSync(module_path)) {
             fss.writeFileSync(module_path, "// Your code here");
@@ -98,9 +103,9 @@ export function reinitialize(name: string) {
     })
 
     // Reinitialize executables
-    const executable = config.exec
-    const exec_dir = path.join(dirname, executable.source_dirs)
-    const main_file_path = path.join(exec_dir, executable.main_is);
+    const executable: Executable = config.exec
+    const exec_dir: string = path.join(dirname, executable.source_dirs)
+    const main_file_path: string = path.join(exec_dir, executable.main_is);
 
     fss.mkdirSync(exec_dir, { recursive: true })
     if (!fss.existsSync(main_file_path)) {
