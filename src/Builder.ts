@@ -103,7 +103,14 @@ function compileModule(path: string, projectName: string) {
 }
 
 
-// function that creates a project
+/**
+ * This function initializes a new project with a given name and configuration.
+ * It creates a new directory for the project, writes a configuration file, and initializes the project files.
+ *
+ * @param name - The name of the project to be created.
+ * @param config - The configuration object for the project.
+ * @returns The path to the configuration file of the newly created project.
+ */
 export function initialize_blank(name: string, config: Config) {
     // Create json file
     const dirname: string = path.join(__dirname, name);
@@ -118,6 +125,13 @@ export function initialize_blank(name: string, config: Config) {
     return file_path;
 }
 
+
+/**
+ * This function reinitializes a project with a given name.
+ * It reads the project's configuration file and reinitializes the project's libraries and executables based on the configuration.
+ *
+ * @param name - The name of the project to be reinitialized.
+ */
 export function reinitialize(name: string) {
     const dirname: string = path.join(__dirname, name)
     const file_path = path.join(dirname, "tsmodules.json")
