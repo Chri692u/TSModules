@@ -1,12 +1,13 @@
 import { Config, initial_cfg } from './../Config';
-import { input, select, confirm, checkbox } from '@inquirer/prompts'
+import { input, select, confirm } from '@inquirer/prompts'
 import { initialize_blank, reinitialize, compile } from '../Builder'
 import * as fss from "fs"
 import * as path from "path"
 
 run()
 
-interface PathMap {
+//TODO: lav en folder til types/interfaces
+export interface PathMap {
   [key: string]: string;
 }
 
@@ -94,17 +95,17 @@ async function run(): Promise<void> {
         break
 
       default:
-        throw new Error("REACHED DEFAULT OH NO DISASTER");
+        throw new Error("REACHED DEFAULT OH NO DISASTER WORLD IS ENDING WHAT CAN WE DO QUICK CALL THE PIZZA MAN WE GOTTA GET A KEBAB PIZZA WITH THE DRESSING OR ELSE THE WORLD MIGHT BE ENDING ALL TOGETHER REMEMBER TO GET SOME FRIES AND SOME DIP WITH THOSE FRIES OR ELSE THE WORLD IS GOING TO TRIPLE END");
 
     }
   }
 }
 
+
 /**
  * Prompts the user to initialize a new project and returns the project name and file path.
- * @returns A Promise that resolves with an object containing the name and file path of the new project.
+ * @returns {Promise<{ name: string; file_path: string; }>} A Promise that resolves with an object containing the name and file path of the new project.
  */
-
 export async function run_init(): Promise<{ name: string; file_path: string; }> {
   const answer: string = await input({ message: 'Name of new project:' });
   const projects: string = path.join(__dirname, 'project_list.json');
@@ -176,7 +177,7 @@ async function run_reinit(): Promise<string | void> {
   let answer: string
   if (fss.existsSync(projects)) {
     const projectsContents: string = fss.readFileSync(projects, 'utf-8');
-    let map: PathMap = JSON.parse(projectsContents);
+    const map: PathMap = JSON.parse(projectsContents);
 
     const projectNames: string[] = Object.keys(map); // Generate a list of project names
 
@@ -195,6 +196,7 @@ async function run_reinit(): Promise<string | void> {
   return answer
 
 }
+
 /**
  * Prompts the user to select a project and builds the selected project.
  * @returns A Promise that resolves once the project is built.

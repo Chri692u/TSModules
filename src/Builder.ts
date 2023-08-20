@@ -5,6 +5,7 @@ import { execSync } from "child_process";
 // import * as file from "../Example/tsmodules.json";
 //import * as config from "../tsconfig.json";
 import { Config, tsconfig } from "./Config";
+import type { PathMap } from "./CLI/Interface";
 
 
 import type { Executable, Library, TSconfig } from "./Config";
@@ -23,43 +24,82 @@ function run(executable_name: string) {
  * @returns A promise that resolves when the compilation is completed successfully, or rejects with an error if any file operation fails or if the compilation itself fails.
  */
 export async function compile(name: string): Promise<void> {
-    const dirname: string = path.join(__dirname, name)
-    const file_path: string = path.join(dirname, "tsmodules.json")
 
-    const cfg_contents = fss.readFileSync(file_path, "utf-8")
-    const config: Config = JSON.parse(cfg_contents)
-    const { exec, libs }: { exec: Executable, libs: Library } = config;
 
-    //! Read files in libs and compile parse them into modules (module.ts)
-    // Parse all files (exec and libs - Our syntax extention)
-    //? Use typescript compiler API to compile workspaces for each module
-    //* Insert all imports acordenly
+    const projects: string = path.join(__dirname, 'project_list.json');
 
-    // Generate tsconfig.json
-    let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
+    if (fss.existsSync(projects)) {
+        const dirname: string = path.join(__dirname, name)
+        const file_path: string = path.join(dirname, "tsmodules.json")
 
-    try {
-        // Write tsconfig.json asynchronously
-        await fs.writeFile(path.join(dirname, "tsconfig.json"), JSON.stringify(tsConfig, null, 2));
+        const cfg_contents = fss.readFileSync(file_path, "utf-8")
+        const config: Config = JSON.parse(cfg_contents)
+        const { exec, libs }: { exec: Executable, libs: Library } = config;
 
-        // Compile the TypeScript files asynchronously
-        await new Promise<void>((resolve, reject) => {
-            try {
-                // Cursed but works temporary
-                // Project list i CLI til at gå ind i path ordenligt
-                execSync(`cd ${dirname} && tsc`);
 
-                console.log("Compilation completed successfully.");
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        });
-    } catch (error) {
-        console.error("File operation failed:", error);
+        //TODO: her kan vi se alle projects
+        const projectsContents: string = fss.readFileSync(projects, 'utf-8');
+        const map: PathMap = JSON.parse(projectsContents);
+
+        //! Read files in libs and compile parse them into modules (module.ts)
+        // Parse all files (exec and libs - Our syntax extention)
+        //? Use typescript compiler API to compile workspaces for each module
+        //* Insert all imports acordenly
+
+        // Generate tsconfig.json
+        let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
+
+        try {
+            // Write tsconfig.json asynchronously
+            await fs.writeFile(path.join(dirname, "tsconfig.json"), JSON.stringify(tsConfig, null, 2));
+
+            // Compile the TypeScript files asynchronously
+            await new Promise<void>(async (resolve, reject) => {
+                try {
+
+                    // Cursed but works temporary
+                    // Project list i CLI til at gå ind i path ordenligt
+                    const promises: Promise<void>[] = Object.entries(map).map(([projectName, projectValue]) => compileModule(projectValue, projectName));
+
+                    await Promise.all(promises);
+
+                    console.log("Compilation completed successfully.");
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        } catch (error) {
+            console.error("File operation failed:", error);
+        }
     }
+
 }
 
+
+/**
+ * This function compiles a TypeScript project located at a specific path.
+ * It uses the `tsc` command to compile the project and logs a message to the console upon successful compilation.
+ * If the compilation fails, it rejects the promise with the error.
+ *
+ * @param path - The path to the TypeScript project that needs to be compiled.
+ * @param projectName - The name of the project. This is used in the console log message upon successful compilation.
+ * @returns A Promise that resolves when the project is successfully compiled. If the compilation fails, the Promise is rejected with the error.
+ * @throws Will throw an error if the compilation fails.
+ */
+function compileModule(path: string, projectName: string) {
+    //Hvis vi gerne vil have at den returner noget så skal vi skifte resolve
+    return new Promise<void>((resolve, reject) => {
+        try {
+            execSync(`cd ${path} && tsc`);
+            //Måske er jeg en dumbass her ved console.log() fordi den måske køre før den er successfull
+            console.log(`${projectName} compiled`)
+            resolve()
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 
 
 // function that creates a project
