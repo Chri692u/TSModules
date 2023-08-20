@@ -57,8 +57,7 @@ export async function compile(name: string): Promise<void> {
             await new Promise<void>(async (resolve, reject) => {
                 try {
 
-                    // Cursed but works temporary
-                    // Project list i CLI til at gå ind i path ordenligt
+
                     const promises: Promise<void>[] = Object.entries(map).map(([projectName, projectValue]) => compileModule(projectValue, projectName));
 
                     await Promise.all(promises);
@@ -91,6 +90,8 @@ function compileModule(path: string, projectName: string) {
     //Hvis vi gerne vil have at den returner noget så skal vi skifte resolve
     return new Promise<void>((resolve, reject) => {
         try {
+            // Cursed but works temporary
+            // Project list i CLI til at gå ind i path ordenligt
             execSync(`cd ${path} && tsc`);
             //Måske er jeg en dumbass her ved console.log() fordi den måske køre før den er successfull
             console.log(`${projectName} compiled`)
