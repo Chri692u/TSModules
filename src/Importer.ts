@@ -100,8 +100,8 @@ function getFiles(dir: string): string[] {
         const entries = fs.readdirSync(dirPath);
 
         for (const entry of entries) {
-            const fullPath = path.join(dirPath, entry);
-            const stat = fs.statSync(fullPath);
+            const fullPath: string = path.join(dirPath, entry);
+            const stat: fs.Stats = fs.statSync(fullPath);
 
             if (stat.isDirectory()) {
                 readDirRecursively(fullPath);
@@ -114,5 +114,5 @@ function getFiles(dir: string): string[] {
     readDirRecursively(dir);
     return files;
 }
-const files = getFiles("Example/src");
+const files:string[] = getFiles("Example/src");
 imports(files);

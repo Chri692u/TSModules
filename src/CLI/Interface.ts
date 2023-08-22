@@ -6,6 +6,8 @@ import * as path from "path"
 
 run()
 
+//TODO: fix det med paths
+
 //TODO: lav en folder til types/interfaces
 export interface PathMap {
   [key: string]: string;
