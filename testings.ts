@@ -1,62 +1,27 @@
-import * as P from 'parser-ts/lib/Parser'
-import * as S from 'parser-ts/lib/string'
-import { pipe } from 'fp-ts/function';
-import { run } from "parser-ts/lib/code-frame";
+function parseModule(moduleString: string) {
+    const moduleObject: any = {};
 
-// Parser for the 'module Main where {' part
-const moduleParser = pipe(
-    S.string('module Main where {'),
-    P.map(() => ({}))
-)
+    const nameMatch = moduleString.match(/module\s+(\w+)/);
+    moduleObject.name = nameMatch ? nameMatch[1] : null;
 
-// Parser for the 'imports: ' part
-const importsParser = pipe(
-    S.string('imports: '),
-    P.map(() => ({}))
-)
+    const importsMatch = moduleString.match(/imports:\s+([^}]+?)\s+exports:/);
+    moduleObject.imports = importsMatch ? importsMatch[1].split(',').map(item => item.trim()) : [];
 
-// Parser for the 'exports: ' part
-const exportsParser = pipe(
-    S.string('exports: '),
-    P.map(() => ({}))
-)
+    const exportsMatch = moduleString.match(/exports:\s+(.+)/);
+    moduleObject.exports = exportsMatch ? exportsMatch[1].split(',').map(item => item.replace("}", "").trim()) : [];
 
-// Parser for the '}' part
-const endParser = pipe(
-    S.string('}'),
-    P.map(() => ({}))
-)
+    return moduleObject;
+}
 
-// Parser for the function libraries
-const functionLibraryParser = pipe(
-    S.spaces,
-    //@ts-ignore
-    P.apSecond(S.identifier),
-    //@ts-ignore
-    P.sepBy(S.string(','))
-)
+const moduleString1 = `module Main where { imports: functionLibrary1, functionLibrary2, hello2 exports: main, hello1 }`;
+const moduleString2 = `
+  module Main where {
+    imports: functionLibrary1, functionLibrary2, hello2
+    exports: main, hello1
+  }`;
 
-// Parser for the main function
-const mainFunctionParser = pipe(
-    S.spaces,
-    //@ts-ignore
-    P.apSecond(S.identifier)
-)
+const moduleObject1 = parseModule(moduleString1);
+console.log(moduleObject1);
 
-// Combine all the parsers
-const fullParser = pipe(
-    moduleParser,
-    P.chain(() => importsParser),
-    //@ts-ignore
-    P.chain(() => functionLibraryParser),
-    P.bindTo('imports'),
-    P.chain(() => exportsParser),
-    P.chain(() => mainFunctionParser),
-    P.bindTo('exports'),
-    P.chain(() => endParser)
-)
-
-// Test the parser
-
-
-console.log(run(fullParser, "module Main where { imports: functionLibrary1, functionLibrary2 exports: main }"))
+const moduleObject2 = parseModule(moduleString2);
+console.log(moduleObject2);
