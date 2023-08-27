@@ -11,8 +11,9 @@ import { Either, isLeft } from 'fp-ts/lib/Either';
 // 3. export skal kunne bruge en * for at eksportere alt
 // 4. Skal kunne parse fil extensions
 // 5. Der skal typer paa
+// 6. Support for comments
 
-const moduleString1 = `module Main where sdasd imports: functionLibraryXD, funssctionLibrary, hello exports: main, helloXD }`;
+const moduleString1 = `module Main where { imports: functionLibraryXD, functionLibrary, hello exports: main, helloXD }`;
 const moduleString2 = `module Main where {
     imports: functionLibrary1, functionLibrary2, hello2
     exports: main, hello1
@@ -37,42 +38,46 @@ const closeCurly = whitespace(C.char("}"))
 
 // Parsers
 const modDecl = pipe(
-  moduleKeyword,
-  P.chain(() => whitespace(identifier)),
-  P.apFirst(whitespace(whereKeyword)),
+    moduleKeyword,
+    P.chain(() => whitespace(identifier)),
+    P.apFirst(whitespace(whereKeyword)),
 )
 
 const parseImports = pipe(
-  importKeyword,
-  P.chain(() => P.sepBy(comma, whitespace(identifier)))
+    importKeyword,
+    P.chain(() => P.sepBy(comma, whitespace(identifier)))
 )
 
 const parseExports = pipe(
-  exportKeyword,
-  P.chain(() => P.sepBy(comma, whitespace(identifier)))
+    exportKeyword,
+    P.chain(() => P.sepBy(comma, whitespace(identifier)))
 )
 
 
 const modBody = pipe(
-  whitespace(parseImports),
-  P.chain(imports => pipe(
-    whitespace(parseExports),
-    P.map(exports => [imports, exports])
-  ))
+    whitespace(parseImports),
+    P.chain(imports => pipe(
+        whitespace(parseExports),
+        P.map(exports => [imports, exports])
+    ))
 );
 
 const parseModule = pipe(
-  modDecl,
-  P.apFirst(openCurly),
-  P.chain(name => pipe(
-    modBody,
-    P.map(([imports, exports]) => ({ name, imports, exports }))
-  )),
+    modDecl,
+    P.apFirst(openCurly),
+    P.chain(name => pipe(
+        modBody,
+        P.map(([imports, exports]) => ({ name, imports, exports }))
+    )),
 
-  P.apFirst(closeCurly)
+    P.apFirst(closeCurly)
 )
 
 
-
-let test = run(parseModule, moduleString1)
-console.log(test);
+export function runParser(input: string) {
+    const result = run(parseModule, input)
+    if (isLeft(result)) {
+        console.log(result.left)
+    }
+    return result
+}
