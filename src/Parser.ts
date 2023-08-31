@@ -19,8 +19,6 @@ const moduleString2 = `module Main where {
     exports: main, hello1
   }`;
 
-
-
 // Lexer
 const whitespace = P.surroundedBy(S.spaces)
 const identifier = C.many1(C.alphanum)

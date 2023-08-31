@@ -206,9 +206,9 @@ function compileModule(path: string, projectName: string) {
  * @param config - The configuration object for the project.
  * @returns The path to the configuration file of the newly created project.
  */
-export function initialize_blank(name: string, config: Config) {
+export function initialize_blank(name: string, config: Config, folder:string) {
     // Create json file
-    const dirname: string = path.join(__dirname, name);
+    const dirname: string = path.join(folder, name);
     fss.mkdirSync(dirname, { recursive: true });
 
     const json: string = JSON.stringify(config, null, 4);
@@ -216,8 +216,7 @@ export function initialize_blank(name: string, config: Config) {
     fss.writeFileSync(file_path, json);
 
     // Create project files
-    reinitialize(name);
-    return file_path;
+    reinitialize(name, folder);
 }
 
 
@@ -227,8 +226,8 @@ export function initialize_blank(name: string, config: Config) {
  *
  * @param name - The name of the project to be reinitialized.
  */
-export function reinitialize(name: string) {
-    const dirname: string = path.join(__dirname, name)
+export function reinitialize(name: string, folder:string) {
+    const dirname: string = path.join(folder, name)
     const file_path = path.join(dirname, "tsmodules.json")
     const cfg_contents = fss.readFileSync(file_path, "utf-8")
     const config: Config = JSON.parse(cfg_contents)

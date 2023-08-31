@@ -2,6 +2,7 @@ import { Config, initial_cfg } from './../Config';
 import { input, select, confirm } from '@inquirer/prompts'
 import { initialize_blank, reinitialize, compile } from '../Builder'
 import * as fss from "fs"
+import process from "node:process"
 import * as path from "path"
 
 run()
@@ -19,6 +20,7 @@ export interface PathMap {
  */
 async function run(): Promise<void> {
   let exit: boolean = true
+  let folder_path = process.cwd()
   while (exit) {
     let map: PathMap = {}
     const projects: string = path.join(__dirname, "project_list.json")
@@ -55,24 +57,23 @@ async function run(): Promise<void> {
         }
       ],
     });
-
-    switch (choice) {
+    
+    switch (choice) {      
       case "init":
-        let { name, file_path }: { name: string, file_path: string } = await run_init()
-
+        let name:string = await run_init(folder_path)
         if (fss.existsSync(projects)) {
           const projectsContents: string = fss.readFileSync(projects, "utf-8")
           map = JSON.parse(projectsContents)
         }
 
         // Update the projects map with the new project
-        map[name] = file_path
+        map[name] = folder_path
         fss.writeFileSync(projects, JSON.stringify(map, null, 2))
         break
 
       case "reinit":
         //TODO: maybe create update method so we dont say update in the reinitters it will return undefind if no projects exists
-        let updated: string | void = await run_reinit()
+        let updated: string | void = await run_reinit(folder_path)
         console.log(`Updated ${updated}`)
         break
 
@@ -108,7 +109,7 @@ async function run(): Promise<void> {
  * Prompts the user to initialize a new project and returns the project name and file path.
  * @returns {Promise<{ name: string; file_path: string; }>} A Promise that resolves with an object containing the name and file path of the new project.
  */
-export async function run_init(): Promise<{ name: string; file_path: string; }> {
+export async function run_init(folder:string): Promise<string> {
   const answer: string = await input({ message: 'Name of new project:' });
   const projects: string = path.join(__dirname, 'project_list.json');
 
@@ -166,15 +167,15 @@ export async function run_init(): Promise<{ name: string; file_path: string; }> 
     },
   };
 
-  let fp: string = initialize_blank(answer, updatedConfig);
-  return { name: answer, file_path: fp };
+  initialize_blank(answer, updatedConfig, folder);
+  return answer;
 }
 
 /**
  * Prompts the user to select a project to reinitialize.
  * @returns A Promise that resolves with the name of the selected project.
  */
-async function run_reinit(): Promise<string | void> {
+async function run_reinit(folder:string): Promise<string | void> {
   const projects: string = path.join(__dirname, 'project_list.json');
   let answer: string
   if (fss.existsSync(projects)) {
@@ -191,7 +192,7 @@ async function run_reinit(): Promise<string | void> {
       message: 'Which project do you want to reinitialize?',
       choices: projectNames.map((name) => ({ value: name, name: name })),
     });
-    reinitialize(answer)
+    reinitialize(answer, folder)
     return answer
   }
   //@ts-expect-error
