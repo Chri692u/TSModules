@@ -7,6 +7,7 @@ import { execSync } from "child_process";
 import { Config, tsconfig } from "./Config";
 import type { PathMap } from "./CLI/Interface";
 import { Module } from "./Module"
+import { runParser } from "./Parser";
 
 
 import type { Executable, Library, TSconfig } from "./Config";
@@ -49,8 +50,9 @@ export async function compile(name: string): Promise<void> {
 
         // Generate tsconfig.json
         let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
+        let targets: Module[] | undefined = makeLibrary(name)
 
-        console.log("hello")
+
         try {
             // Write tsconfig.json asynchronously
             await fs.writeFile(path.join(dirname, "tsconfig.json"), JSON.stringify(tsConfig, null, 2));
@@ -78,6 +80,7 @@ export async function compile(name: string): Promise<void> {
 
 }
 
+
 function makeMain(name: string) {
 
 
@@ -87,8 +90,8 @@ function makeMain(name: string) {
 
         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
         const map: PathMap = JSON.parse(projectsContents);
-        const dírPath: string = map[name];
-        const config: Config = JSON.parse(fss.readFileSync(dírPath, 'utf-8'))
+        const dirPath: string = map[name];
+        const config: Config = JSON.parse(fss.readFileSync(dirPath, 'utf-8'))
 
         const exposed_modules: string[] = config.libs.exposed_modules
         /**
@@ -100,7 +103,6 @@ function makeMain(name: string) {
 
         /**
          * makeLibrary
-         * 
          */
 
     }
@@ -121,33 +123,25 @@ function makeLibrary(name: string) {
         const exposed_modules: string[] = config.libs.exposed_modules
 
 
+        const libPaths: string[] = exposed_modules.map((exposed: string) => dírPath.replace("tsmodules.json", path.join(config.libs.source_dirs, exposed)))
 
-        /**
-         * parseModule(fileName: string);
-         * const libPaths: string[] = exposed_modules.map((exposed: string) => dírPath.replace("tsmodules.json", path.join(config.libs.source_dirs, exposed)))
-         * const modules: ModuleXD[] = libPaths.map(parseModule) // libPaths.map((file: string) => parseModule(file))
-         */
+        //Get AST From ts files and parse them into modules
+        const modules: Module[] = []
+        libPaths.forEach((path: string) => {
+            const content = fss.readFileSync(path, 'utf-8')
+            const module = runParser(content)
+            if (module._tag === "Left") {
+                throw new Error(module.left)
+            } else {
+                modules.push(new Module(module.right.name, module.right.imports, module.right.exports))
+            }
+        })
 
-
-        const module: Module = new Module(name, ["negermand"], exposed_modules)
-
-        /**
-         *! makeWorkspaces:
-         * 1. compile module to TS AST
-         * 2. Solve dependencies
-         * 3. Write files
-         * 
-         * 
-         * makeWorkspaces(modules: ModuleXD[]): void maybe
-         */
-        console.log(module)
+        return modules
 
     }
 }
 
-
-
-makeLibrary("ole")
 
 // //TODO: maybe union type
 // function getProjects(): PathMap | boolean {
