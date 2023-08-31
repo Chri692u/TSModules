@@ -29,19 +29,17 @@ export async function compile(name: string): Promise<void> {
 
 
     const projects: string = path.join(__dirname, "CLI", 'project_list.json');
-    console.log(__dirname)
+    console.log(projects);
     if (fss.existsSync(projects)) {
-        const dirname: string = path.join(__dirname, name)
-        const file_path: string = path.join(dirname, "tsmodules.json")
-
-        const cfg_contents = fss.readFileSync(file_path, "utf-8")
-        const config: Config = JSON.parse(cfg_contents)
-        const { exec, libs }: { exec: Executable, libs: Library } = config;
-
-
         //TODO: her kan vi se alle projects
         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
         const map: PathMap = JSON.parse(projectsContents);
+        const dirPath: string = map[name];
+        const dirname: string = path.join(dirPath, name)
+        const file_path: string = path.join(dirname, "tsmodules.json")
+        const cfg_contents = fss.readFileSync(file_path, "utf-8")
+        const config: Config = JSON.parse(cfg_contents)
+        const { exec, libs }: { exec: Executable, libs: Library } = config;
 
         //! Read files in libs and compile parse them into modules (module.ts)
         // Parse all files (exec and libs - Our syntax extention)
@@ -51,8 +49,20 @@ export async function compile(name: string): Promise<void> {
         // Generate tsconfig.json
         let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
         let targets: Module[] | undefined = makeLibrary(name)
+        console.log(targets);
+        
+        /*
+        workspaces = []
+        targets.forEach(target -> do
+            checkImports
+            someMapMaybe = writeExports - f.eks sæt modul navn på de exportede function så man ved hvor de er fra
+            if all is good, 
+                code = translate module and push source code
+                - workspaces.push(code)
+            )
+        */
 
-
+        /*
         try {
             // Write tsconfig.json asynchronously
             await fs.writeFile(path.join(dirname, "tsconfig.json"), JSON.stringify(tsConfig, null, 2));
@@ -76,8 +86,8 @@ export async function compile(name: string): Promise<void> {
         } catch (error) {
             console.error("File operation failed:", error);
         }
+        */
     }
-
 }
 
 
@@ -118,12 +128,11 @@ function makeLibrary(name: string) {
     if (fss.existsSync(projects)) {
         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
         const map: PathMap = JSON.parse(projectsContents);
-        const dírPath: string = map[name];
-        const config: Config = JSON.parse(fss.readFileSync(dírPath, 'utf-8'))
+        const dirPath: string = map[name];
+        const dirFolder: string = path.join(dirPath, name);
+        const config: Config = JSON.parse(fss.readFileSync(path.join(dirFolder, "tsmodules.json"), 'utf-8'))
         const exposed_modules: string[] = config.libs.exposed_modules
-
-
-        const libPaths: string[] = exposed_modules.map((exposed: string) => dírPath.replace("tsmodules.json", path.join(config.libs.source_dirs, exposed)))
+        const libPaths: string[] = exposed_modules.map((exposed: string) => path.join(dirFolder, config.libs.source_dirs, exposed))
 
         //Get AST From ts files and parse them into modules
         const modules: Module[] = []
