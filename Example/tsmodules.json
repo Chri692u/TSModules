@@ -1,0 +1,28 @@
+{
+    "version": "1.0",
+    "name": "Example",
+    "project_version": "0.0.1",
+    "author": "Christoffer",
+    "maintainer": "",
+    "extra_files": [
+        "README.md"
+    ],
+    "libs": {
+        "source_dirs": "src",
+        "exposed_modules": [
+            "notMain.ts"
+        ],
+        "depends": [
+            "base"
+        ]
+    },
+    "exec": {
+        "name": "main",
+        "main_is": "main.ts",
+        "depends": [
+            "base"
+        ],
+        "source_dirs": "app",
+        "target_lang": "ES6"
+    }
+}
