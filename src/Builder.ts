@@ -19,12 +19,6 @@ function run(executable_name: string) {
     // run the binary in dist-folder
 }
 
-
-/*
- * Compiles the TypeScript files based on the provided JSON configuration.
- * @param json_config - The JSON configuration object.
- * @returns A promise that resolves when the compilation is completed successfully, or rejects with an error if any file operation fails or if the compilation itself fails.
- */
 export async function compile(name: string): Promise<void> {
 
 
@@ -32,6 +26,7 @@ export async function compile(name: string): Promise<void> {
     console.log(projects);
     if (fss.existsSync(projects)) {
         //TODO: her kan vi se alle projects
+        //Get the config file
         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
         const map: PathMap = JSON.parse(projectsContents);
         const dirPath: string = map[name];
@@ -41,10 +36,6 @@ export async function compile(name: string): Promise<void> {
         const config: Config = JSON.parse(cfg_contents)
         const { exec, libs }: { exec: Executable, libs: Library } = config;
 
-        //! Read files in libs and compile parse them into modules (module.ts)
-        // Parse all files (exec and libs - Our syntax extention)
-        //? Use typescript compiler API to compile workspaces for each module
-        //* Insert all imports acordenly
 
         // Generate tsconfig.json
         let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
@@ -92,8 +83,6 @@ export async function compile(name: string): Promise<void> {
 
 
 function makeMain(name: string) {
-
-
     const projects: string = path.join(__dirname, 'project_list.json');
 
     if (fss.existsSync(projects)) {
@@ -120,17 +109,18 @@ function makeMain(name: string) {
 
 }
 
-
 function makeLibrary(name: string) {
-
     const projects: string = path.join(__dirname, "CLI", 'project_list.json');
 
     if (fss.existsSync(projects)) {
+        // Get the config file
         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
         const map: PathMap = JSON.parse(projectsContents);
         const dirPath: string = map[name];
         const dirFolder: string = path.join(dirPath, name);
         const config: Config = JSON.parse(fss.readFileSync(path.join(dirFolder, "tsmodules.json"), 'utf-8'))
+
+        //Get library paths
         const exposed_modules: string[] = config.libs.exposed_modules
         const libPaths: string[] = exposed_modules.map((exposed: string) => path.join(dirFolder, config.libs.source_dirs, exposed))
 
@@ -138,20 +128,18 @@ function makeLibrary(name: string) {
         const modules: Module[] = []
         libPaths.forEach((path: string) => {
             const content = fss.readFileSync(path, 'utf-8')
-            const module = runParser(content)
-            console.log(module);            
+            const module = runParser(content)           
             if (module._tag === "Left") {
                 throw new Error(module.left)
             } else {
                 modules.push(new Module(module.right.mod.name,
-                    module.right.mod.imports,
-                    module.right.mod.exports,
-                    module.right.code.join()))
+                                        module.right.mod.imports,
+                                        module.right.mod.exports,
+                                        module.right.code.join()))
             }
         })
 
         return modules
-
     }
 }
 
