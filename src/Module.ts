@@ -1,14 +1,14 @@
 // module class
 export class Module {
-    private moduleName: string; //Rewrite after importer
-    private exports: string[]; //Rewrite after importer
-    private imports: string[];  //Rewrite after importer
+    public moduleName: string
+    public exports: string[]
+    public imports: string[]
+    public code: string
 
-    constructor(moduleName: string, imports: string[], exports: string[]) {
+    constructor(moduleName: string, imports: string[], exports: string[], code:string) {
         this.moduleName = moduleName;
         this.imports = imports
-        this.exports = exports;
+        this.exports = exports
+        this.code = code
     }
 }
-
-

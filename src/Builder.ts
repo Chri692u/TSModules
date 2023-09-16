@@ -139,10 +139,14 @@ function makeLibrary(name: string) {
         libPaths.forEach((path: string) => {
             const content = fss.readFileSync(path, 'utf-8')
             const module = runParser(content)
+            console.log(module);            
             if (module._tag === "Left") {
                 throw new Error(module.left)
             } else {
-                modules.push(new Module(module.right.name, module.right.imports, module.right.exports))
+                modules.push(new Module(module.right.mod.name,
+                    module.right.mod.imports,
+                    module.right.mod.exports,
+                    module.right.code.join()))
             }
         })
 
@@ -150,7 +154,6 @@ function makeLibrary(name: string) {
 
     }
 }
-
 
 // //TODO: maybe union type
 // function getProjects(): PathMap | boolean {

@@ -5,13 +5,6 @@ import * as S from 'parser-ts/lib/string';
 import { run } from 'parser-ts/lib/code-frame'
 import { Either, isLeft } from 'fp-ts/lib/Either';
 
-//Forbedreinger version af module parseren
-// 1. Skal kunne parse en optional semi-colon
-// 2. exports og imports skal være optional
-// 3. export skal kunne bruge en * for at eksportere alt
-// 4. Skal kunne parse fil extensions
-// 5. Der skal typer paa
-// 6. Support for comments
 
 const moduleString1 = `module Main where { imports: functionLibraryXD, functionLibrary, hello exports: main, helloXD }`;
 const moduleString2 = `module Main where {
@@ -51,7 +44,6 @@ const parseExports = pipe(
     P.chain(() => P.sepBy(comma, whitespace(identifier)))
 )
 
-
 const modBody = pipe(
     whitespace(parseImports),
     P.chain(imports => pipe(
@@ -65,17 +57,34 @@ const parseModule = pipe(
     P.apFirst(openCurly),
     P.chain(name => pipe(
         modBody,
-        P.map(([imports, exports]) => ({ name, imports, exports }))
+        P.map(([imports, exports]) => ({ name, imports, exports}))
     )),
 
     P.apFirst(closeCurly)
 )
 
+const parseRest = P.many(P.item<string>());
+
+const parseCode = pipe(
+    parseModule,
+    P.chain(mod => pipe(
+        parseRest,
+        P.map(code => ({mod, code}))
+    ))
+)
 
 export function runParser(input: string) {
-    const result = run(parseModule, input)
+    const result = run(parseCode, input)
     if (isLeft(result)) {
         console.log(result.left)
     }
     return result
 }
+
+//Forbedreinger version af module parseren
+// 1. Skal kunne parse en optional semi-colon
+// 2. exports og imports skal være optional
+// 3. export skal kunne bruge en * for at eksportere alt
+// 4. Skal kunne parse fil extensions
+// 5. Der skal typer paa
+// 6. Support for comments
