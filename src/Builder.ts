@@ -8,6 +8,7 @@ import { Config, tsconfig } from "./Config";
 import type { PathMap } from "./CLI/Interface";
 import { Module } from "./Module"
 import { runParser } from "./Parser";
+import { build_recursively, translate_module} from "./Translation"
 
 
 import type { Executable, Library, TSconfig } from "./Config";
@@ -20,10 +21,7 @@ function run(executable_name: string) {
 }
 
 export async function compile(name: string): Promise<void> {
-
-
     const projects: string = path.join(__dirname, "CLI", 'project_list.json');
-    console.log(projects);
     if (fss.existsSync(projects)) {
         //TODO: her kan vi se alle projects
         //Get the config file
@@ -39,74 +37,47 @@ export async function compile(name: string): Promise<void> {
 
         // Generate tsconfig.json
         let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
-        let targets: Module[] | undefined = makeLibrary(name)
-        console.log(targets);
-        
-        /*
-        workspaces = []
-        targets.forEach(target -> do
-            checkImports
-            someMapMaybe = writeExports - f.eks sæt modul navn på de exportede function så man ved hvor de er fra
-            if all is good, 
-                code = translate module and push source code
-                - workspaces.push(code)
-            )
-        */
+        // Parse modules
+        let libraries: Module[] | undefined = makeLibrary(name)
+        let main_program = makeMain(name)
+        translate_module(main_program)
+        //Translate modules
+        //let main_src, workspaces = build_recursively(main_program, libraries)
 
-        /*
-        try {
-            // Write tsconfig.json asynchronously
-            await fs.writeFile(path.join(dirname, "tsconfig.json"), JSON.stringify(tsConfig, null, 2));
-
-            // Compile the TypeScript files asynchronously
-            await new Promise<void>((resolve, reject) => {
-                try {
-
-                    //TODO: fix 
-                    //@ts-ignore
-                    const promises: Promise<void>[] = Object.entries(map).map(([projectName, projectValue]) => compileModule(projectValue, projectName));
-
-                    Promise.all(promises);
-
-                    console.log("Compilation completed successfully.");
-                    resolve();
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        } catch (error) {
-            console.error("File operation failed:", error);
-        }
-        */
+        //Write to dist dir
+        // ...
     }
 }
 
-
 function makeMain(name: string) {
-    const projects: string = path.join(__dirname, 'project_list.json');
+    const projects: string = path.join(__dirname, "CLI", 'project_list.json');
 
     if (fss.existsSync(projects)) {
 
+        // Get the config file
         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
         const map: PathMap = JSON.parse(projectsContents);
         const dirPath: string = map[name];
-        const config: Config = JSON.parse(fss.readFileSync(dirPath, 'utf-8'))
+        const dirFolder: string = path.join(dirPath, name);
+        const config: Config = JSON.parse(fss.readFileSync(path.join(dirFolder, "tsmodules.json"), 'utf-8'))
 
-        const exposed_modules: string[] = config.libs.exposed_modules
-        /**
-         * LAV MAIN TIL ARRAY
-         * parseModule(fileName: string);
-         * const paths: string[] = exposed_modules.map((exposed: string) => dírPath.replace("tsmodules.json", path.join(config.libs.source_dirs,config.exec.main_is)))
-         * const modules: ModuleXD[] = paths.map(parseModule) // paths.map((file: string) => parseModule(file))
-         */
-
-        /**
-         * makeLibrary
-         */
-
+        // Get Main file
+        const main_path_name = config.exec.main_is
+        const app_folder = config.exec.source_dirs
+        const main_path = path.join(dirPath, name, app_folder,main_path_name)
+        // Parse and make module
+        const content = fss.readFileSync(main_path, 'utf-8')
+            const module = runParser(content)
+            console.log(module._tag);          
+            if (module._tag === "Left") {
+                throw new Error(module.left)
+            } else {
+                return new Module(module.right.mod.name,
+                                  module.right.mod.imports,
+                                  module.right.mod.exports,
+                                  module.right.code.join())
+            }
     }
-
-
 }
 
 function makeLibrary(name: string) {
@@ -142,34 +113,6 @@ function makeLibrary(name: string) {
         return modules
     }
 }
-
-// //TODO: maybe union type
-// function getProjects(): PathMap | boolean {
-//     const projects: string = path.join(__dirname, "CLI", 'project_list.json');
-//     if (fss.existsSync(projects)) {
-//         const projectsContents: string = fss.readFileSync(projects, 'utf-8');
-//         const map: PathMap = JSON.parse(projectsContents);
-//         return map;
-//     } else {
-//         return false;
-//     }
-
-
-// }
-
-// function config(name: string): Config {
-//     const projects: PathMap | boolean = getProjects()
-//     if (projects) {
-//         try {
-
-//         } catch (error) {
-
-//         }
-//         return JSON.parse(fss.readFileSync(projects[name], 'utf-8')) as Config
-//     }
-
-// }
-
 
 /**
  * This function compiles a TypeScript project located at a specific path.
