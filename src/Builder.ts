@@ -39,8 +39,13 @@ export async function compile(name: string): Promise<void> {
         let tsConfig: TSconfig = { ...tsconfig, files: [`./app/${exec['main_is']}`, ...libs['exposed_modules'].map((module: any) => `./${libs['source_dirs']}/${module}`)] };
         // Parse modules
         let libraries: Module[] | undefined = makeLibrary(name)
-        let main_program = makeMain(name)
-        translate_module(main_program)
+        let main_program: Module | undefined = makeMain(name)
+        
+        let dist = path.join(dirname, "dist")
+        let temp_dist = path.join(dist, "temp_" + main_program!.moduleName + ".ts")
+        console.log(main_program);
+        
+        await translate_module(main_program!, temp_dist, dist)
         //Translate modules
         //let main_src, workspaces = build_recursively(main_program, libraries)
 
@@ -75,7 +80,7 @@ function makeMain(name: string) {
                 return new Module(module.right.mod.name,
                                   module.right.mod.imports,
                                   module.right.mod.exports,
-                                  module.right.code.join())
+                                  module.right.code.join(''))
             }
     }
 }

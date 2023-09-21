@@ -1,35 +1,40 @@
-import * as fs from 'fs';
+import * as fss from 'fs';
+import * as fs from "fs/promises";
 import * as path from 'path';
 import * as ts from 'typescript';
+import type { Module } from "./Module"
 
 export function build_recursively(){
     console.log("fak ur madda");
     
 }
 
-export function translate_module(mod){
-    // TODO: Fix at vi ikke har filepaths
-    // Måske brug temp files?
-    const program: ts.Program = ts.createProgram(filepath, {});
-    const typeChecker: ts.TypeChecker = program.getTypeChecker();
-
+export async function translate_module(mod: Module, temp_path:any, dist: string){
     const functions: string[] = [];
     const includes: string[] = [];
     let src: string = "";
-    // TODO: Fix at vi ikke har filepaths
-    if (!filepath.isDeclarationFile) {
-        // TODO: Fix at vi ikke har filepaths
-        visitNode(filepath, functions, includes, src, typeChecker, program);
+    let module_dist = path.join(dist, mod.moduleName + ".ts")
+
+    await fs.writeFile(temp_path, mod.code);
+    
+    // DØR HER?
+    // Måske har det noget at gøre med temp_path
+    // I do not know
+    const program: ts.Program = ts.createProgram(temp_path, {});
+    const typeChecker: ts.TypeChecker = program.getTypeChecker();
+    
+    if (!temp_path.isDeclarationFile) {
+        visitNode(temp_path, functions, includes, src, typeChecker, program);
     }
 
     const classContent = functions.join('\n');
     const includesContent = includes.join('\n');
     const code = create_code_string(classContent, includesContent, src)
-    fs.writeFileSync("outputFileName.ts", code);
-
+    
+    await fs.writeFile(module_dist, code);
 }
 
-function create_code_string(class_str, includes_str, src){
+function create_code_string(class_str:string, includes_str:string, src:string){
     return `
     export namespace NAME {
       ${class_str}
@@ -39,7 +44,7 @@ function create_code_string(class_str, includes_str, src){
   `
 }
 
-// TODO: Fix at vi ikke har filepaths
+
 function visitNode(
     node: ts.Node,
     functions: string[],
@@ -84,11 +89,11 @@ function getFiles(dir: string): string[] {
     const files: string[] = [];
 
     const readDirRecursively = (dirPath: string) => {
-        const entries = fs.readdirSync(dirPath);
+        const entries = fss.readdirSync(dirPath);
 
         for (const entry of entries) {
             const fullPath: string = path.join(dirPath, entry);
-            const stat: fs.Stats = fs.statSync(fullPath);
+            const stat: fss.Stats = fss.statSync(fullPath);
 
             if (stat.isDirectory()) {
                 readDirRecursively(fullPath);
